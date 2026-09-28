@@ -114,6 +114,15 @@ public sealed class AcquisitionSettings
 
     public int SettleD { get; set; } = 2;
 
+    /// <summary>When true (v6 only), push settles in DWT cycles instead of µs.</summary>
+    public bool UseCycleSettle { get; set; }
+
+    // Cycle settles: 72 cycles = 1 µs. Defaults = 2/2/14/2 µs.
+    public int SettleCycA { get; set; } = 144;
+    public int SettleCycB { get; set; } = 144;
+    public int SettleCycC { get; set; } = 1008;
+    public int SettleCycD { get; set; } = 144;
+
     // --- display-only ---
 
     /// <summary>Freeze the visualizers without stopping the stream.</summary>
@@ -148,7 +157,10 @@ public sealed class AcquisitionSettings
         commands.SetWarmup(send, Warmup);
         commands.SetFlatTolerance(send, FlatHoldTolerance);
         commands.SetRamp(send, RampMode, PrimeBurst, PrimeRepeats, RampSlope, ReverseRadius);
-        commands.SetSettle(send, SettleA, SettleB, SettleC, SettleD);
+        if (UseCycleSettle && commands.SupportsCycleSettle)
+            commands.SetSettleCycles(send, SettleCycA, SettleCycB, SettleCycC, SettleCycD);
+        else
+            commands.SetSettle(send, SettleA, SettleB, SettleC, SettleD);
         commands.RepeatCoil(send, RepeatCoil);
     }
 }

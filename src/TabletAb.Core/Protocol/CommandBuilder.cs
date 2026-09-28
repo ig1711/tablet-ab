@@ -61,6 +61,20 @@ public static class CommandBuilder
         return buf;
     }
 
+    /// <summary>
+    /// 0x15 — settle sites A/B/C/D in DWT cycles (72 cycles = 1 us), each a u16
+    /// LE (0..65535). Sub-microsecond precision for the AFE settle optimum.
+    /// </summary>
+    public static byte[] SetSettleCycles(int a, int b, int c, int d)
+    {
+        byte[] buf = New(ProtocolCommands.SetSettleCycles);
+        PutU16(buf, 1, a);
+        PutU16(buf, 3, b);
+        PutU16(buf, 5, c);
+        PutU16(buf, 7, d);
+        return buf;
+    }
+
     /// <summary>0x07 — ADC samples per channel (1..7) and clock prescaler select (0..3).</summary>
     public static byte[] SetAdc(int samples, int clockSelect)
     {

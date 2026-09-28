@@ -28,7 +28,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` cancelled/deferre
 
 ## Phase 10 — Protocol v6 + `hs611-min-ab` firmware `[x]`
 
-- [x] New isolated firmware at `../hs611-min-ab` (protocol v6 in
+- [x] New isolated firmware at
+      [hs611-min-ab](https://github.com/ig1711/hs611-min-ab) (protocol v6 in
       `src/protocol.h`; docs in its `README.md`).
 - [x] `TabletAb.Core.Protocol` updated to v6: explicit header fields, a u16
       `flags` word, consolidated commands (`SET_ADC`, `SET_WINDOW`, `SET_REACQ`,
@@ -37,12 +38,15 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` cancelled/deferre
 - [x] `AcquisitionSettings.PushAll`, `SimulatedFrameTransport`, UI and tests
       migrated to v6.
 - [x] Canonical reference: [`docs/protocol.md`](docs/protocol.md).
+- [x] Protocol v6.1: `SET_SETTLE_CYC` (0x15) — per-site settle in DWT cycles
+      (72 = 1 µs) for sub-microsecond AFE tuning; tablet-ab exposes a
+      "Cycle-accurate settle" toggle (v5 falls back to whole-µs `SET_SETTLE`).
 
 ---
 
 ## Phase 0 — Decisions & documentation `[x]`
 
-- [x] Choose project location: `/home/ryo/work/embedded/tablet-ab` (standalone).
+- [x] Choose project location: standalone repository, separate from the firmware.
 - [x] Target platforms: **Linux + Windows**.
 - [x] Fidelity: faithful **input** only; lean Veldrid app (no osu.Framework).
 - [x] Release input: **internal** (OTD library, lazer-style, user area mapping)

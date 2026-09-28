@@ -75,6 +75,16 @@ public class CommandBuilderTests
     }
 
     [Fact]
+    public void SetSettleCycles_WritesFourLittleEndianU16()
+    {
+        AssertCommand(CommandBuilder.SetSettleCycles(0x1234, 0x0056, 0xABCD, 0x00FF),
+            ProtocolCommands.SetSettleCycles,
+            0x34, 0x12, 0x56, 0x00, 0xCD, 0xAB, 0xFF, 0x00);
+        AssertCommand(CommandBuilder.SetSettleCycles(0, 0, 0, 0),
+            ProtocolCommands.SetSettleCycles, 0, 0, 0, 0, 0, 0, 0, 0);
+    }
+
+    [Fact]
     public void SetAdc_WritesSamplesAndClockClamped()
     {
         AssertCommand(CommandBuilder.SetAdc(1, 0), ProtocolCommands.SetAdc, 1, 0);
@@ -224,6 +234,7 @@ public class CommandBuilderTests
             (ProtocolCommands.SetWarmup, CommandBuilder.SetWarmup(2)),
             (ProtocolCommands.SetFlatTolerance, CommandBuilder.SetFlatTolerance(5)),
             (ProtocolCommands.RepeatCoil, CommandBuilder.RepeatCoil(5)),
+            (ProtocolCommands.SetSettleCycles, CommandBuilder.SetSettleCycles(144, 144, 1008, 144)),
         };
 
         foreach ((byte id, byte[] buffer) in commands)

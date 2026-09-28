@@ -5,7 +5,8 @@ How to make the vendor-class debug firmware (`256c:6111`) reachable by
 is read via OpenTabletDriver / HID, not libusb.
 
 The wire protocol itself is documented in [`protocol.md`](protocol.md). The
-current debug firmware is [hs611-min-ab](../../hs611-min-ab) (protocol v6).
+current debug firmware is [hs611-min-ab](https://github.com/ig1711/hs611-min-ab)
+(protocol v6).
 
 ## Linux
 

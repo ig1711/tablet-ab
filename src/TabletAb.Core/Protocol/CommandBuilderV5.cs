@@ -12,6 +12,15 @@ public sealed class CommandBuilderV5 : ICommandBuilder
 
     public string Name => "v5";
 
+    public bool SupportsCycleSettle => false;
+
+    /// <summary>v5 has no cycle command; round each site to the nearest whole
+    /// microsecond and use SET_SETTLE.</summary>
+    public void SetSettleCycles(Action<byte[]> send, int a, int b, int c, int d)
+        => SetSettle(send, CyclesToUs(a), CyclesToUs(b), CyclesToUs(c), CyclesToUs(d));
+
+    private static int CyclesToUs(int cycles) => (int)Math.Round(cycles / 72.0, MidpointRounding.AwayFromZero);
+
     // Legacy opcodes (see hs611-fw src/min/debug_proto.h, protocol v5).
     private const byte PingId = 0x02;
     private const byte SetFrequencyId = 0x01;

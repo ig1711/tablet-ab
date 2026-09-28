@@ -14,6 +14,10 @@ thread, not the UI framework.
 See [`PLAN.md`](PLAN.md) for design, [`PHASES.md`](PHASES.md) for progress and
 [`SESSION_LOG.md`](SESSION_LOG.md) for the development log.
 
+The reference firmware it drives is
+[hs611-min-ab](https://github.com/ig1711/hs611-min-ab); the shared wire protocol
+is documented in [`docs/protocol.md`](docs/protocol.md).
+
 ---
 
 ## Features

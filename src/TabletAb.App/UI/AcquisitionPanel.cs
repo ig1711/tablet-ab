@@ -165,15 +165,43 @@ public sealed class AcquisitionPanel
         ImGui.Separator();
 
         void SendSettle() => commands.SetSettle(send, s.SettleA, s.SettleB, s.SettleC, s.SettleD);
+        void SendSettleCycles() => commands.SetSettleCycles(send, s.SettleCycA, s.SettleCycB, s.SettleCycC, s.SettleCycD);
 
-        ImGui.Text("Settle sites A / B / C / D (µs)");
-        IntInput("A##seta", s.SettleA, 0, 255, v => { s.SettleA = v; SendSettle(); });
-        ImGui.SameLine();
-        IntInput("B##setb", s.SettleB, 0, 255, v => { s.SettleB = v; SendSettle(); });
-        ImGui.SameLine();
-        IntInput("C##setc", s.SettleC, 0, 255, v => { s.SettleC = v; SendSettle(); });
-        ImGui.SameLine();
-        IntInput("D##setd", s.SettleD, 0, 255, v => { s.SettleD = v; SendSettle(); });
+        bool useCycle = s.UseCycleSettle && commands.SupportsCycleSettle;
+        if (commands.SupportsCycleSettle)
+        {
+            if (ImGui.Checkbox("Cycle-accurate settle (DWT cycles, 72 = 1 µs)##cyclesettle", ref useCycle))
+            {
+                s.UseCycleSettle = useCycle;
+                if (useCycle) SendSettleCycles(); else SendSettle();
+            }
+            if (!s.UseCycleSettle)
+                ImGui.SameLine();
+        }
+
+        if (useCycle)
+        {
+            ImGui.Text($"Settle sites A / B / C / D (cycles; {s.SettleCycA / 72.0:F2} / {s.SettleCycB / 72.0:F2} / " +
+                       $"{s.SettleCycC / 72.0:F2} / {s.SettleCycD / 72.0:F2} µs)");
+            IntInput("A##setca", s.SettleCycA, 0, 65535, v => { s.SettleCycA = v; SendSettleCycles(); });
+            ImGui.SameLine();
+            IntInput("B##setcb", s.SettleCycB, 0, 65535, v => { s.SettleCycB = v; SendSettleCycles(); });
+            ImGui.SameLine();
+            IntInput("C##setcc", s.SettleCycC, 0, 65535, v => { s.SettleCycC = v; SendSettleCycles(); });
+            ImGui.SameLine();
+            IntInput("D##setcd", s.SettleCycD, 0, 65535, v => { s.SettleCycD = v; SendSettleCycles(); });
+        }
+        else
+        {
+            ImGui.Text("Settle sites A / B / C / D (µs)");
+            IntInput("A##seta", s.SettleA, 0, 255, v => { s.SettleA = v; SendSettle(); });
+            ImGui.SameLine();
+            IntInput("B##setb", s.SettleB, 0, 255, v => { s.SettleB = v; SendSettle(); });
+            ImGui.SameLine();
+            IntInput("C##setc", s.SettleC, 0, 255, v => { s.SettleC = v; SendSettle(); });
+            ImGui.SameLine();
+            IntInput("D##setd", s.SettleD, 0, 255, v => { s.SettleD = v; SendSettle(); });
+        }
 
         IntInput("Repeat coil (0 = off)##repeat", s.RepeatCoil, 0, ProtocolConstants.Nx, v =>
         {

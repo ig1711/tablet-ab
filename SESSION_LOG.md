@@ -48,7 +48,7 @@ exact next step. Link to commits/files where useful.
     window is inactive. Internal vs external tablet modes.
 
 - Decisions:
-  - Standalone project at `/home/ryo/work/embedded/tablet-ab`.
+  - Standalone project (its own repository).
   - Targets **Linux + Windows**.
   - Faithful **input** only; lean Veldrid + ImGui.NET app, no osu.Framework.
   - Release input modes: **internal** (OTD library, lazer-style, user area
@@ -242,7 +242,7 @@ exact next step. Link to commits/files where useful.
 - Agent: opencode (deepseek/deepseek-v4.1-flash) + 2 subagents (Core tests;
   firmware verification)
 
-- Work done in `/home/ryo/work/embedded/hs611-fw`:
+- Work done in the `hs611-fw` firmware repo:
   - `src/min/debug_proto.h`: `DBG_CMD_SET_FREQ_ARR 0x24`,
     `DBG_CMD_SET_PACING 0x25`, `DBG_PACING_SOF/CONTINUOUS/AUTO`, doc block.
   - `src/min/usb_min.c`: `min_pacing` (default `MIN_PACING =
@@ -254,7 +254,7 @@ exact next step. Link to commits/files where useful.
     override (last one wins).
   - Docs: `docs/tracking-window.md` §2.2 (pacing) and new §2.4 (continuous
     frequency).
-- Work done in `/home/ryo/work/embedded/tablet-ab`:
+- Work done in this repo (tablet-ab):
   - `ProtocolCommands.SetFrequencyArr/SetPacing`, `ProtocolConstants.Pacing*`,
     `CommandBuilder.SetFrequencyArr/SetPacing`, `ProtocolCatalog.PacingModes`.
 

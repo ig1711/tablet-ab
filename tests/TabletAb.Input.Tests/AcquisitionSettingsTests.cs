@@ -158,6 +158,41 @@ public class AcquisitionSettingsTests
     }
 
     [Fact]
+    public void PushAll_CycleSettle_EmitsSettleCyclesOnV6()
+    {
+        var settings = new AcquisitionSettings
+        {
+            UseCycleSettle = true,
+            SettleCycA = 100,
+            SettleCycB = 200,
+            SettleCycC = 300,
+            SettleCycD = 400,
+        };
+        var sink = PushDefaults(settings);
+
+        byte[] b = sink.Single(ProtocolCommands.SetSettleCycles);
+        Assert.Equal(100, b[1] | (b[2] << 8));
+        Assert.Equal(200, b[3] | (b[4] << 8));
+        Assert.Equal(300, b[5] | (b[6] << 8));
+        Assert.Equal(400, b[7] | (b[8] << 8));
+        Assert.Equal(0, sink.Count(ProtocolCommands.SetSettle));
+    }
+
+    [Fact]
+    public void PushAll_CycleSettle_V5FallsBackToMicroseconds()
+    {
+        var settings = new AcquisitionSettings { UseCycleSettle = true };
+        var sink = new RecordingCommandSink();
+        settings.PushAll(sink, CommandBuilderV5.Instance);
+
+        byte[] settle = sink.Single(0x12); // v5 SET_SETTLE (0x15 is v5 RepeatCoil)
+        Assert.Equal(2, settle[1]);    // 144 / 72
+        Assert.Equal(2, settle[2]);
+        Assert.Equal(14, settle[3]);   // 1008 / 72
+        Assert.Equal(2, settle[4]);
+    }
+
+    [Fact]
     public void PushAll_V5Protocol_EmitsLegacyIdsAndExpandsCompositeCommands()
     {
         var sink = new RecordingCommandSink();

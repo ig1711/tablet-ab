@@ -119,7 +119,8 @@ tablet-ab/
 
 ## 6. Firmware changes required
 
-Done in the companion firmware repo (`hs611-fw`):
+Done in the companion firmware repo (`hs611-fw`, now isolated as
+[hs611-min-ab](https://github.com/ig1711/hs611-min-ab)):
 
 1. **`SET_PACING`** (new command) — `0` SOF-paced, `1` continuous / free-run.
    Today the only continuous path is `SET_RAMP mode 1`, which conflates pacing
@@ -181,7 +182,8 @@ Done in the companion firmware repo (`hs611-fw`):
 - osu!lazer: https://github.com/ppy/osu
 - osu!framework: https://github.com/ppy/osu-framework
 - OpenTabletDriver: https://github.com/OpenTabletDriver/OpenTabletDriver
-- Companion firmware + web tool (current): `hs611-fw`
+- Companion A/B firmware: [hs611-min-ab](https://github.com/ig1711/hs611-min-ab)
+- Upstream firmware + web tool: `hs611-fw`
   - `web/src/lib/protocol.ts` — wire protocol to port
   - `web/src/components/ProfileChart.tsx` — amplitude visualizer to port
   - `web/src/components/Position.tsx` — cursor view to replace

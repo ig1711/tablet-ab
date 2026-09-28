@@ -13,6 +13,9 @@ public interface ICommandBuilder
     /// <summary>Short name for the UI (e.g. "v6").</summary>
     string Name { get; }
 
+    /// <summary>True when the protocol can express settle in DWT cycles.</summary>
+    bool SupportsCycleSettle { get; }
+
     void Ping(Action<byte[]> send);
 
     void SetFrequency(Action<byte[]> send, int frequency);
@@ -23,6 +26,10 @@ public interface ICommandBuilder
 
     void SetBurst(Action<byte[]> send, int periods);
     void SetSettle(Action<byte[]> send, int a, int b, int c, int d);
+
+    /// <summary>Settle A/B/C/D in DWT cycles (72 = 1 us). Only valid when
+    /// <see cref="SupportsCycleSettle"/> is true; v5 maps to microseconds.</summary>
+    void SetSettleCycles(Action<byte[]> send, int a, int b, int c, int d);
     void SetAdc(Action<byte[]> send, int samples, int clockSelect);
     void SetRecovery(Action<byte[]> send, bool enabled);
     void SetWindow(Action<byte[]> send, int xCoils, int yCoils);
@@ -49,12 +56,16 @@ public sealed class CommandBuilderV6 : ICommandBuilder
 
     public string Name => "v6";
 
+    public bool SupportsCycleSettle => true;
+
     public void Ping(Action<byte[]> send) => send(CommandBuilder.Ping());
     public void SetFrequency(Action<byte[]> send, int frequency) => send(CommandBuilder.SetFrequency(frequency));
     public void SetFrequencyArr(Action<byte[]> send, int arr) => send(CommandBuilder.SetFrequencyArr(arr));
     public void SetBackend(Action<byte[]> send, int backend) => send(CommandBuilder.SetBackend(backend));
     public void SetBurst(Action<byte[]> send, int periods) => send(CommandBuilder.SetBurst(periods));
     public void SetSettle(Action<byte[]> send, int a, int b, int c, int d) => send(CommandBuilder.SetSettle(a, b, c, d));
+    public void SetSettleCycles(Action<byte[]> send, int a, int b, int c, int d)
+        => send(CommandBuilder.SetSettleCycles(a, b, c, d));
     public void SetAdc(Action<byte[]> send, int samples, int clockSelect) => send(CommandBuilder.SetAdc(samples, clockSelect));
     public void SetRecovery(Action<byte[]> send, bool enabled) => send(CommandBuilder.SetRecovery(enabled));
     public void SetWindow(Action<byte[]> send, int xCoils, int yCoils) => send(CommandBuilder.SetWindow(xCoils, yCoils));

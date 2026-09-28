@@ -2,8 +2,9 @@ namespace TabletAb.Core.Protocol;
 
 /// <summary>
 /// Wire-protocol constants for the v6 A/B firmware
-/// (<c>../hs611-min-ab/src/protocol.h</c>), plus the legacy v1..v5 frame sizes so
-/// older captures and the previous firmware still parse.
+/// (<see href="https://github.com/ig1711/hs611-min-ab/blob/main/src/protocol.h">src/protocol.h</see>),
+/// plus the legacy v1..v5 frame sizes so older captures and the previous
+/// firmware still parse.
 ///
 /// v6 frame (168 bytes, little-endian):
 /// <code>
@@ -203,4 +204,11 @@ public static class ProtocolCommands
     public const byte SetWarmup = 0x12;
     public const byte SetFlatTolerance = 0x13;
     public const byte RepeatCoil = 0x14;
+
+    /// <summary>
+    /// v6.1: per-site settle in DWT cycles (72 cycles = 1 us) for A/B/C/D as
+    /// four u16 LE values at offsets 1/3/5/7. Complements <see cref="SetSettle"/>
+    /// (microseconds); the last one written wins.
+    /// </summary>
+    public const byte SetSettleCycles = 0x15;
 }

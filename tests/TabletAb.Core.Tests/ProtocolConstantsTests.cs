@@ -108,6 +108,7 @@ public class ProtocolConstantsTests
         Assert.Equal(0x12, ProtocolCommands.SetWarmup);
         Assert.Equal(0x13, ProtocolCommands.SetFlatTolerance);
         Assert.Equal(0x14, ProtocolCommands.RepeatCoil);
+        Assert.Equal(0x15, ProtocolCommands.SetSettleCycles);
     }
 
     [Fact]

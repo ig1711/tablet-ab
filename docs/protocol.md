@@ -1,8 +1,10 @@
 # HS611 A/B firmware wire protocol (v6)
 
 Canonical reference for the vendor-class USB protocol used by the
-**hs611-min-ab** A/B firmware and consumed by tablet-ab. The firmware's
-`src/protocol.h` is the source of truth; this document mirrors it.
+**[hs611-min-ab](https://github.com/ig1711/hs611-min-ab)** A/B firmware and
+consumed by tablet-ab. The firmware's
+[`src/protocol.h`](https://github.com/ig1711/hs611-min-ab/blob/main/src/protocol.h)
+is the source of truth; this document mirrors it.
 
 The previous firmware (`hs611-fw` `DEBUG_MIN`) spoke versions 1–5 and is still
 read by the parser, but the app builds only v6 commands and this document
@@ -102,6 +104,7 @@ value", except where noted.
 | `0x12` | `SET_WARMUP` | `[1]` 0..8 discarded reads before each axis scan |
 | `0x13` | `SET_FLAT_TOL` | `[1..2]` u16 flat-top hold tolerance (0 = off) |
 | `0x14` | `REPEAT_COIL` | `[1]` 0 off, 1..41 repeat that axis-B coil |
+| `0x15` | `SET_SETTLE_CYC` | `[1..2]` A, `[3..4]` B, `[5..6]` C, `[7..8]` D — each a u16 LE settle in **DWT cycles** (72 cycles = 1 µs) |
 
 ### Mode value reference
 
@@ -116,6 +119,16 @@ value", except where noted.
   `1` continuous/free-run, `2` auto (free-run only in the carry-over ramp mode).
 - **ADC clock** (`SET_ADC[2]`): `0` APB2/2 · 36 MHz, `1` /4 · 18 MHz, `2` /6 ·
   12 MHz, `3` /8 · 9 MHz.
+
+### Cycle-accurate settle
+
+`SET_SETTLE` (0x06) sets the four settle sites in whole microseconds (1..255).
+The AFE response to settle C is sensitive at the sub-microsecond scale (the pen
+tank rings at the drive period, ~1.9 µs at frequency index 6), so whole-µs steps
+alias it and produce an odd/even amplitude pattern. `SET_SETTLE_CYC` (0x15) sets
+the same four sites in **DWT cycles** (72 cycles = 1 µs, range 0..65535 ≈
+0..910 µs) for exact tuning. The two commands are interchangeable — the last one
+written wins. tablet-ab exposes this as the "Cycle-accurate settle" toggle.
 
 ## Connect-time handshake
 

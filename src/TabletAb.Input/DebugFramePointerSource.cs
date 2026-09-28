@@ -68,8 +68,8 @@ public sealed class DebugFramePointerSource : IPointerSource
         float rawY = frame.YPos / 256f;
 
         // Web normalisation: (xPos/256 - 1) / (N - 1), clamped to 0..1.
-        double nx = Math.Clamp((rawX - 1.0) / (ProtocolConstants.Nx - 1), 0.0, 1.0);
-        double ny = Math.Clamp((rawY - 1.0) / (ProtocolConstants.Ny - 1), 0.0, 1.0);
+        double nx = Math.Clamp((rawX - 1.0) / Math.Max(1, frame.X.Length - 1), 0.0, 1.0);
+        double ny = Math.Clamp((rawY - 1.0) / Math.Max(1, frame.Y.Length - 1), 0.0, 1.0);
 
         var point = new PointerPoint(nx, ny, rawX, rawY, rawX, rawY, 0f, frame.HostTimeMs);
 

@@ -1,4 +1,4 @@
-# HS611 A/B firmware wire protocol (v6)
+# HS611 A/B firmware wire protocol (v7)
 
 Canonical reference for the vendor-class USB protocol used by the
 **[hs611-min-ab](https://github.com/ig1711/hs611-min-ab)** A/B firmware and
@@ -6,15 +6,20 @@ consumed by tablet-ab. The firmware's
 [`src/protocol.h`](https://github.com/ig1711/hs611-min-ab/blob/main/src/protocol.h)
 is the source of truth; this document mirrors it.
 
-The previous firmware (`hs611-fw` `DEBUG_MIN`) spoke versions 1–5 and is still
-read by the parser, but the app builds only v6 commands and this document
-describes v6. Setup (drivers, udev) is in [`usb-setup.md`](usb-setup.md).
+Version 7 makes the frame **self-describing**: offsets 0..31 are identical to
+v6, then the header carries the X/Y coil counts so the host derives the
+amplitude-array offsets and total frame length instead of assuming 41 × 27.
+v6 is still parsed (fixed 41 × 27), so existing HS611 firmware and captures keep
+working. The previous firmware (`hs611-fw` `DEBUG_MIN`) spoke versions 1–5 and is
+also still read; the app emits v6/v7 commands. Setup (drivers, udev) is in
+[`usb-setup.md`](usb-setup.md).
 
 ## Transport
 
-- USB vendor-class device, **VID:PID `256c:6111`**.
+- USB vendor-class device, **VID:PID `256c:6111`** (HS611) or **`256c:6112`**
+  (Gaomon S620 fork).
 - One vendor-specific interface (class `0xFF`), endpoints discovered by the host:
-  - **bulk IN** — the device streams 168-byte frames.
+  - **bulk IN** — the device streams 168-byte (v6) or 172-byte (v7, HS611) frames.
   - **bulk OUT** — the host sends 64-byte commands.
 - Everything is little-endian. The device does not acknowledge commands; the
   next frame reflects the new settings.
@@ -49,6 +54,26 @@ Fixed **168 bytes**:
 | 28 | 4 | scan duration, microseconds |
 | 32 | 82 | x amplitudes: 41 × u16 (axis-B loops) |
 | 114 | 54 | y amplitudes: 27 × u16 (axis-A loops) |
+
+### v7 geometry block
+
+v7 keeps offsets 0..31 exactly as above but replaces the fixed amplitude
+block with a self-describing header:
+
+| off | size | field |
+|---|---|---|
+| 32 | 1 | `nx` — x coil count |
+| 33 | 1 | `ny` — y coil count |
+| 34 | 2 | reserved (0) |
+| 36 | 2·nx | x amplitudes: `nx` × u16 (axis-B loops) |
+| 36 + 2·nx | 2·ny | y amplitudes: `ny` × u16 (axis-A loops) |
+
+So `header = 36`, `offAmpX = 36`, `offAmpY = 36 + 2·nx`, and
+`frameLen = 36 + 2·(nx + ny)`. The parser validates that the transfer is at
+least `frameLen` bytes before decoding, so a truncated frame is rejected rather
+than mis-read. HS611 (41/27) v7 frames are **172 B**; the Gaomon S620 fork
+(30/19) is **134 B**. v6 remains a fixed 168-byte, 41 × 27 layout
+(`FrameGeometry.V6`).
 
 ### Flags (u16 at offset 4)
 

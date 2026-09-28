@@ -49,6 +49,11 @@ public sealed class AbApplication : IDisposable
 
     private Frame? _displayFrame;
 
+    /// <summary>Latest frame coil geometry (v7 self-describing frames); null until
+    /// the first frame arrives. Used for debug-pointer normalisation and command
+    /// coil-count limits.</summary>
+    private Vector2? _debugRawMax;
+
     private IFrameSource? _source;
     private volatile bool _pendingDisconnect;
     private string _tabletStatus = "disconnected";
@@ -324,7 +329,10 @@ public sealed class AbApplication : IDisposable
     private void OnFrameReceived(object? sender, FrameReceivedEventArgs e)
     {
         lock (_statisticsGate)
+        {
             _statistics.Add(e.Frame);
+            _debugRawMax = new Vector2(e.Frame.X.Length, e.Frame.Y.Length);
+        }
     }
 
     private void OnTransportLost(object? sender, TransportLostEventArgs e)
@@ -452,7 +460,7 @@ public sealed class AbApplication : IDisposable
 
         _cursorPanel.RawMax = _pointerMode switch
         {
-            PointerMode.Debug => new Vector2(ProtocolConstants.Nx, ProtocolConstants.Ny),
+            PointerMode.Debug => _debugRawMax ?? new Vector2(ProtocolConstants.Nx, ProtocolConstants.Ny),
             PointerMode.Otd when _pointerSource is OtdPointerSource otd => otd.RawMax,
             PointerMode.External => new Vector2(_window.Width, _window.Height),
             _ => Vector2.One,
@@ -488,7 +496,8 @@ public sealed class AbApplication : IDisposable
 
         DrawTile("tile.status", "Status", new Vector2(0, 0), new Vector2(leftWidth, statusHeight), _panel.DrawContent, scrollable: true);
         DrawTile("tile.ab", "A/B acquisition", new Vector2(0, statusHeight), new Vector2(leftWidth, abHeight),
-            () => _acquisitionPanel.DrawContent(_settings, SendCommand, _commands, _source is not null), scrollable: true);
+            () => _acquisitionPanel.DrawContent(_settings, SendCommand, _commands, _source is not null,
+                (int)(_debugRawMax?.X ?? ProtocolConstants.Nx)), scrollable: true);
         DrawTile("tile.profiles", "Amplitude profiles", new Vector2(rightX, 0), new Vector2(rightWidth, profilesHeight), DrawProfiles);
         DrawTile("tile.cursor", "Cursor points", new Vector2(rightX, cursorY), new Vector2(rightWidth, cursorHeight), DrawCursorContent);
     }

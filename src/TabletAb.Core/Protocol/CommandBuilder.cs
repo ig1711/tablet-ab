@@ -221,11 +221,14 @@ public static class CommandBuilder
         return b;
     }
 
-    /// <summary>0x14 — repeat one axis-B coil (0 = off, 1..41).</summary>
+    /// <summary>
+    /// 0x14 — repeat one axis-B coil (0 = off, 1..255). The firmware clamps to
+    /// its own <c>Nx</c>, which now varies by device (v7 geometry).
+    /// </summary>
     public static byte[] RepeatCoil(int coil)
     {
         byte[] b = New(ProtocolCommands.RepeatCoil);
-        b[1] = (byte)Math.Clamp(coil, 0, ProtocolConstants.Nx);
+        b[1] = (byte)Math.Clamp(coil, 0, 255);
         return b;
     }
 

@@ -13,14 +13,15 @@ public static class DeviceCli
 {
     private const double DumpTimeoutSeconds = 15.0;
 
-    /// <summary>List devices matching 256c:6111.</summary>
+    /// <summary>List devices matching the tablet-ab debug firmware (256c:6111 / 256c:6112).</summary>
     public static int ListDevices()
     {
         IReadOnlyList<VendorUsbDeviceInfo> devices = VendorUsbLocator.Find();
 
         if (devices.Count == 0)
         {
-            Console.Error.WriteLine("no 256c:6111 device found (is the debug firmware running and the tablet plugged in?)");
+            Console.Error.WriteLine(
+                "no tablet-ab debug firmware device found (256c:6111 / 256c:6112; is it running and the tablet plugged in?)");
             return 1;
         }
 

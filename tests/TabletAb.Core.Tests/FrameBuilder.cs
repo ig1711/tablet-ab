@@ -3,12 +3,18 @@ using TabletAb.Core.Protocol;
 namespace TabletAb.Core.Tests;
 
 /// <summary>
-/// Assembles a raw little-endian v6 wire frame
-/// (<c>hs611-min-ab/src/protocol.h</c>).
+/// Assembles a raw little-endian v6 or v7 wire frame
+/// (<c>hs611-min-ab/src/protocol.h</c>). Defaults to the fixed v6 geometry so
+/// existing tests keep working; use <see cref="V7"/> for a self-describing
+/// frame that carries its own coil counts.
 /// </summary>
 public sealed class FrameBuilder
 {
-    private readonly byte[] _buffer = new byte[ProtocolConstants.FrameLen];
+    private readonly byte[] _buffer;
+    private readonly FrameGeometry _geometry;
+    private readonly int _version;
+    private readonly ushort[] _x;
+    private readonly ushort[] _y;
 
     private int _seq;
     private int _flags;
@@ -30,15 +36,32 @@ public sealed class FrameBuilder
     private uint _scanUs;
     private ushort _xPos;
     private ushort _yPos;
-    private readonly ushort[] _x = new ushort[ProtocolConstants.Nx];
-    private readonly ushort[] _y = new ushort[ProtocolConstants.Ny];
 
-    public FrameBuilder()
+    public FrameBuilder() : this(FrameGeometry.V6, ProtocolVersion.V6)
     {
+    }
+
+    public FrameBuilder(FrameGeometry geometry, int version)
+    {
+        _geometry = geometry;
+        _version = version;
+        _buffer = new byte[geometry.FrameLen];
+        _x = new ushort[geometry.Nx];
+        _y = new ushort[geometry.Ny];
+
         _buffer[0] = ProtocolConstants.Magic0;
         _buffer[1] = ProtocolConstants.Magic1;
-        _buffer[2] = ProtocolVersion.V6;
+        _buffer[2] = (byte)version;
+
+        if (version >= ProtocolVersion.V7)
+        {
+            _buffer[ProtocolConstants.GeomNxOffset] = (byte)geometry.Nx;
+            _buffer[ProtocolConstants.GeomNyOffset] = (byte)geometry.Ny;
+        }
     }
+
+    /// <summary>A self-describing v7 frame builder with the given coil counts.</summary>
+    public static FrameBuilder V7(int nx, int ny) => new(FrameGeometry.V7(nx, ny), ProtocolVersion.V7);
 
     public FrameBuilder Seq(int value) { _seq = value; return this; }
     public FrameBuilder Flags(int value) { _flags = value; return this; }
@@ -61,14 +84,14 @@ public sealed class FrameBuilder
 
     public FrameBuilder FillX(Func<int, ushort> value)
     {
-        for (int i = 0; i < ProtocolConstants.Nx; i++)
+        for (int i = 0; i < _geometry.Nx; i++)
             _x[i] = value(i);
         return this;
     }
 
     public FrameBuilder FillY(Func<int, ushort> value)
     {
-        for (int i = 0; i < ProtocolConstants.Ny; i++)
+        for (int i = 0; i < _geometry.Ny; i++)
             _y[i] = value(i);
         return this;
     }
@@ -96,10 +119,16 @@ public sealed class FrameBuilder
         WriteU32(24, _deviceTimeUs);
         WriteU32(28, _scanUs);
 
-        for (int i = 0; i < ProtocolConstants.Nx; i++)
-            WriteU16(ProtocolConstants.OffAmpX + i * 2, _x[i]);
-        for (int i = 0; i < ProtocolConstants.Ny; i++)
-            WriteU16(ProtocolConstants.OffAmpY + i * 2, _y[i]);
+        if (_version >= ProtocolVersion.V7)
+        {
+            _buffer[ProtocolConstants.GeomNxOffset] = (byte)_geometry.Nx;
+            _buffer[ProtocolConstants.GeomNyOffset] = (byte)_geometry.Ny;
+        }
+
+        for (int i = 0; i < _geometry.Nx; i++)
+            WriteU16(_geometry.OffAmpX + i * 2, _x[i]);
+        for (int i = 0; i < _geometry.Ny; i++)
+            WriteU16(_geometry.OffAmpY + i * 2, _y[i]);
 
         return _buffer;
     }

@@ -154,8 +154,8 @@ chosen backend, device name and the list of available backends on startup.
 ./tablet-ab --dump-frames 1000 --source sim
 ```
 
-`--list-devices` enumerates `256c:6111` devices; `--dump-frames` streams N
-frames and prints live statistics. Useful over SSH/CI. See
+`--list-devices` enumerates `256c:6111` / `256c:6112` devices; `--dump-frames`
+streams N frames and prints live statistics. Useful over SSH/CI. See
 [`docs/usb-setup.md`](docs/usb-setup.md) for driver setup.
 
 ## Change the graphics backend to OpenGL
@@ -202,7 +202,7 @@ Vulkan probe, so Vulkan/OpenGL detection works on modern distros out of the box.
 --source <none|vendor|sim>                 connect a device at startup
 --sim-rate <hz>                            simulated source rate (default: 1000)
 --dump-frames <n>                          headless: read n frames, print stats, exit
---list-devices                             headless: list 256c:6111 devices, exit
+--list-devices                             headless: list 256c:6111 / 6112 devices, exit
 --pointer <off|debug|otd|external>         cursor-point input mode (default: off)
 --protocol <auto|v5|v6>                    firmware command protocol (default: auto)
 -h, --help                                 show help

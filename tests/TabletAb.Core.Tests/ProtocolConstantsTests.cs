@@ -19,6 +19,22 @@ public class ProtocolConstantsTests
     }
 
     [Fact]
+    public void FrameLayout_MatchesFirmwareV7()
+    {
+        Assert.Equal(36, ProtocolConstants.HeaderLenV7);
+        Assert.Equal(32, ProtocolConstants.GeomNxOffset);
+        Assert.Equal(33, ProtocolConstants.GeomNyOffset);
+        Assert.Equal(256, ProtocolConstants.MaxFrameLen);
+
+        Assert.Equal(172, FrameGeometry.V7(41, 27).FrameLen);
+        Assert.Equal(134, FrameGeometry.V7(30, 19).FrameLen);
+        Assert.Equal(118, FrameGeometry.V7(41, 27).OffAmpY);
+        Assert.Equal(36, FrameGeometry.V7(41, 27).OffAmpX);
+        Assert.Equal(168, FrameGeometry.V6.FrameLen);
+        Assert.Equal(114, FrameGeometry.V6.OffAmpY);
+    }
+
+    [Fact]
     public void FieldOffsets_MatchFirmwareV6()
     {
         Assert.Equal(4, ProtocolConstants.OffFlags);
@@ -74,7 +90,7 @@ public class ProtocolConstantsTests
     }
 
     [Fact]
-    public void Versions_AreContiguousAndCurrentIsV6()
+    public void Versions_AreContiguousAndCurrentIsV7()
     {
         Assert.Equal(1, ProtocolVersion.V1);
         Assert.Equal(2, ProtocolVersion.V2);
@@ -82,7 +98,8 @@ public class ProtocolConstantsTests
         Assert.Equal(4, ProtocolVersion.V4);
         Assert.Equal(5, ProtocolVersion.V5);
         Assert.Equal(6, ProtocolVersion.V6);
-        Assert.Equal(ProtocolVersion.V6, ProtocolVersion.Current);
+        Assert.Equal(7, ProtocolVersion.V7);
+        Assert.Equal(ProtocolVersion.V7, ProtocolVersion.Current);
     }
 
     [Fact]

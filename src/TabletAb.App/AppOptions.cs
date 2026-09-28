@@ -201,7 +201,7 @@ public sealed class AppOptions
         Console.WriteLine("  --source <none|vendor|sim>               connect a device at startup");
         Console.WriteLine("  --sim-rate <hz>                          simulated source rate (default: 1000)");
         Console.WriteLine("  --dump-frames <n>                        headless: read n frames, print stats, exit");
-        Console.WriteLine("  --list-devices                           headless: list 256c:6111 devices, exit");
+        Console.WriteLine("  --list-devices                           headless: list 256c:6111 / 6112 devices, exit");
         Console.WriteLine("  --pointer <off|debug|otd|external>       cursor-point input mode (default: off)");
         Console.WriteLine("  --protocol <auto|v5|v6>                  firmware command protocol (default: auto)");
         Console.WriteLine("  -h, --help                               show this help");

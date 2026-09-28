@@ -22,7 +22,8 @@ public class VendorUsbLocatorTests
         Assert.All(devices, device =>
         {
             Assert.Equal(VendorUsbLocator.Hs611VendorId, device.VendorId);
-            Assert.Equal(VendorUsbLocator.Hs611DebugProductId, device.ProductId);
+            Assert.True(device.ProductId is VendorUsbLocator.Hs611DebugProductId
+                or VendorUsbLocator.S620DebugProductId);
         });
     }
 }

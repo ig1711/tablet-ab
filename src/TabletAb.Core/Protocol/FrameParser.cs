@@ -3,10 +3,11 @@ using System.Buffers.Binary;
 namespace TabletAb.Core.Protocol;
 
 /// <summary>
-/// Decodes one acquisition frame. Protocol v6 (hs611-min-ab) is the primary
-/// format; legacy v1..v5 frames from the previous firmware are still accepted so
-/// older captures keep working. A desynchronised stream (short buffer, bad magic
-/// or unknown version) yields <c>null</c> rather than a mis-decoded frame.
+/// Decodes one acquisition frame. Protocol v7 (self-describing: the header
+/// carries the coil geometry) and v6 (hs611-min-ab) are the primary formats;
+/// legacy v1..v5 frames from the previous firmware are still accepted so older
+/// captures keep working. A desynchronised stream (short buffer, bad magic or
+/// unknown version) yields <c>null</c> rather than a mis-decoded frame.
 /// </summary>
 public static class FrameParser
 {
@@ -24,6 +25,9 @@ public static class FrameParser
 
         int version = data[2];
 
+        if (version == ProtocolVersion.V7)
+            return ParseV7(data, hostTimeMs);
+
         if (version == ProtocolVersion.V6)
             return ParseV6(data, hostTimeMs);
 
@@ -34,18 +38,37 @@ public static class FrameParser
     }
 
     private static Frame? ParseV6(ReadOnlySpan<byte> data, double hostTimeMs)
+        => ParseV6Fields(data, hostTimeMs, ProtocolVersion.V6, FrameGeometry.V6);
+
+    private static Frame? ParseV7(ReadOnlySpan<byte> data, double hostTimeMs)
     {
-        const int header = ProtocolConstants.HeaderLen;
-        if (data.Length < header + (ProtocolConstants.Nx + ProtocolConstants.Ny) * 2)
+        // The geometry block sits at offsets 32/33; a valid v7 frame is at least
+        // 36 bytes, so a shorter buffer cannot be one.
+        if (data.Length < ProtocolConstants.HeaderLenV7)
             return null;
 
-        var x = new ushort[ProtocolConstants.Nx];
-        for (int i = 0; i < ProtocolConstants.Nx; i++)
-            x[i] = BinaryPrimitives.ReadUInt16LittleEndian(data.Slice(ProtocolConstants.OffAmpX + i * 2, 2));
+        int nx = data[ProtocolConstants.GeomNxOffset];
+        int ny = data[ProtocolConstants.GeomNyOffset];
+        var geometry = FrameGeometry.V7(nx, ny);
 
-        var y = new ushort[ProtocolConstants.Ny];
-        for (int i = 0; i < ProtocolConstants.Ny; i++)
-            y[i] = BinaryPrimitives.ReadUInt16LittleEndian(data.Slice(ProtocolConstants.OffAmpY + i * 2, 2));
+        if (data.Length < geometry.FrameLen)
+            return null;
+
+        return ParseV6Fields(data, hostTimeMs, ProtocolVersion.V7, geometry);
+    }
+
+    private static Frame? ParseV6Fields(ReadOnlySpan<byte> data, double hostTimeMs, int version, FrameGeometry g)
+    {
+        if (data.Length < g.FrameLen)
+            return null;
+
+        var x = new ushort[g.Nx];
+        for (int i = 0; i < g.Nx; i++)
+            x[i] = BinaryPrimitives.ReadUInt16LittleEndian(data.Slice(g.OffAmpX + i * 2, 2));
+
+        var y = new ushort[g.Ny];
+        for (int i = 0; i < g.Ny; i++)
+            y[i] = BinaryPrimitives.ReadUInt16LittleEndian(data.Slice(g.OffAmpY + i * 2, 2));
 
         int flags = BinaryPrimitives.ReadUInt16LittleEndian(data.Slice(ProtocolConstants.OffFlags, 2));
         int adcClock = data[ProtocolConstants.OffAdcClock];
@@ -67,7 +90,7 @@ public static class FrameParser
 
         return new Frame
         {
-            Version = ProtocolVersion.V6,
+            Version = version,
             Seq = data[3],
             Flags = flags,
             Backend = data[ProtocolConstants.OffBackend],

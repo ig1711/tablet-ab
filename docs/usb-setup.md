@@ -1,12 +1,13 @@
 # USB setup
 
-How to make the vendor-class debug firmware (`256c:6111`) reachable by
-`tablet-ab`. Release HID firmware (`256c:006f`) is a separate path (Phase 7) and
-is read via OpenTabletDriver / HID, not libusb.
+How to make the vendor-class debug firmware (`256c:6111`, HS611; or
+`256c:6112`, Gaomon S620 fork) reachable by `tablet-ab`. Release HID firmware
+(`256c:006f`) is a separate path (Phase 7) and is read via OpenTabletDriver /
+HID, not libusb.
 
 The wire protocol itself is documented in [`protocol.md`](protocol.md). The
 current debug firmware is [hs611-min-ab](https://github.com/ig1711/hs611-min-ab)
-(protocol v6).
+(protocol v6/v7).
 
 ## Linux
 
@@ -16,6 +17,7 @@ and bulk transfers need read/write access to the USB node. Add a udev rule:
 ```sh
 # /etc/udev/rules.d/72-hs611.rules
 SUBSYSTEM=="usb", ATTR{idVendor}=="256c", ATTR{idProduct}=="6111", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTR{idVendor}=="256c", ATTR{idProduct}=="6112", MODE="0660", TAG+="uaccess"
 ```
 
 Then reload:
@@ -56,4 +58,5 @@ executable (see the conditional `None` item in `TabletAb.App.csproj`).
 |---|---|---|
 | `DEBUG_MIN=1` / `DEBUG_DUMP=1` | 256c:6111 | vendor bulk (this doc) |
 | `RELEASE=1 REL_DEBUG=1` | 256c:6111 | vendor bulk, no commands |
+| Gaomon S620 debug fork | 256c:6112 | vendor bulk (this doc) |
 | `RELEASE=1` | 256c:006f | HID report id 8 (Phase 7) |

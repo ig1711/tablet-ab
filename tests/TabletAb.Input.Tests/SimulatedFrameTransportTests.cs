@@ -73,6 +73,7 @@ public class SimulatedFrameTransportTests
 
         foreach (Frame frame in snapshot)
         {
+            Assert.Equal(ProtocolVersion.Current, frame.Version);
             Assert.Equal(ProtocolConstants.Nx, frame.X.Length);
             Assert.Equal(ProtocolConstants.Ny, frame.Y.Length);
             Assert.InRange(frame.XPeak, 1, ProtocolConstants.Nx);
@@ -82,6 +83,56 @@ public class SimulatedFrameTransportTests
             Assert.True(frame.Y.Max() > baseline,
                 "Y peak amplitude should exceed the simulator baseline");
         }
+    }
+
+    [Fact]
+    public void Open_WithCustomGeometry_EmitsMatchingV7Frames()
+    {
+        const int target = 5;
+        const int nx = 30;
+        const int ny = 19;
+
+        var received = new ManualResetEventSlim(false);
+        var transport = new SimulatedFrameTransport(TestRateHz, nx, ny);
+        var frames = new List<Frame>();
+
+        transport.FrameReceived += (_, e) =>
+        {
+            lock (frames)
+            {
+                frames.Add(e.Frame);
+                if (frames.Count >= target)
+                    received.Set();
+            }
+        };
+
+        try
+        {
+            transport.Open();
+            Assert.True(received.Wait(WaitTimeout), $"expected {target} frames within {WaitTimeout}");
+        }
+        finally
+        {
+            transport.Close();
+            transport.Dispose();
+        }
+
+        Frame[] snapshot;
+        lock (frames)
+            snapshot = frames.ToArray();
+
+        Assert.NotEmpty(snapshot);
+        Assert.All(snapshot, frame =>
+        {
+            Assert.Equal(ProtocolVersion.V7, frame.Version);
+            Assert.Equal(nx, frame.X.Length);
+            Assert.Equal(ny, frame.Y.Length);
+            Assert.InRange(frame.XPeak, 1, nx);
+            Assert.InRange(frame.YPeak, 1, ny);
+        });
+
+        long frameLength = 36L + 2L * (nx + ny);
+        Assert.Equal(0, transport.BytesReceived % frameLength);
     }
 
     [Fact]

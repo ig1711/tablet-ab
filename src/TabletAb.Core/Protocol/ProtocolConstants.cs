@@ -1,10 +1,14 @@
 namespace TabletAb.Core.Protocol;
 
 /// <summary>
-/// Wire-protocol constants for the v6 A/B firmware
+/// Wire-protocol constants for the v6/v7 A/B firmware
 /// (<see href="https://github.com/ig1711/hs611-min-ab/blob/main/src/protocol.h">src/protocol.h</see>),
 /// plus the legacy v1..v5 frame sizes so older captures and the previous
 /// firmware still parse.
+///
+/// The v6 constants below are the fixed HS611 v6 geometry (equivalent to
+/// <see cref="FrameGeometry.V6"/>); they are kept for the v6/legacy read path
+/// and tests.
 ///
 /// v6 frame (168 bytes, little-endian):
 /// <code>
@@ -58,6 +62,16 @@ public static class ProtocolConstants
 
     public const int CommandLen = 64;
 
+    // ---- v7 self-describing frame geometry ---------------------------------
+    // v7 shares offsets 0..31 with v6, then carries the coil counts so the
+    // amplitude-array offsets and frame length are derived per frame.
+    public const int HeaderLenV7 = 36;
+    public const int GeomNxOffset = 32;
+    public const int GeomNyOffset = 33;
+
+    /// <summary>Largest bulk-IN transfer the reader expects (v7 HS611 is 172).</summary>
+    public const int MaxFrameLen = 256;
+
     public const byte Magic0 = 0x48; // 'H'
     public const byte Magic1 = 0x53; // 'S'
 
@@ -96,6 +110,29 @@ public static class ProtocolConstants
     public const int PacingSof = Pacing.Sof;
     public const int PacingContinuous = Pacing.Continuous;
     public const int PacingAuto = Pacing.Auto;
+}
+
+/// <summary>
+/// Frame geometry: header length plus the per-axis coil counts carried by a
+/// v7 frame, from which the amplitude-array offsets and total frame length are
+/// derived. <see cref="V6"/> is the fixed HS611 v6 layout (32/41/27, 168 B).
+/// </summary>
+public readonly record struct FrameGeometry(int HeaderLen, int Nx, int Ny)
+{
+    /// <summary>Offset of the x amplitude array.</summary>
+    public int OffAmpX => HeaderLen;
+
+    /// <summary>Offset of the y amplitude array.</summary>
+    public int OffAmpY => HeaderLen + Nx * 2;
+
+    /// <summary>Total frame length in bytes.</summary>
+    public int FrameLen => HeaderLen + (Nx + Ny) * 2;
+
+    /// <summary>Fixed v6 geometry (41 x 27, 32-byte header, 168-byte frame).</summary>
+    public static FrameGeometry V6 => new(32, 41, 27);
+
+    /// <summary>v7 geometry with the frame's carried coil counts and 36-byte header.</summary>
+    public static FrameGeometry V7(int nx, int ny) => new(36, nx, ny);
 }
 
 /// <summary>v6 frame flag bits (u16 at offset 4).</summary>
@@ -176,9 +213,10 @@ public static class ProtocolVersion
     public const int V4 = 4;
     public const int V5 = 5;
     public const int V6 = 6;
+    public const int V7 = 7;
 
     /// <summary>Version emitted by the current (hs611-min-ab) firmware.</summary>
-    public const int Current = V6;
+    public const int Current = V7;
 }
 
 /// <summary>Host -&gt; device command ids for protocol v6 (first byte of the buffer).</summary>

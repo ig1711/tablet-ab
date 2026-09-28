@@ -59,8 +59,9 @@ public sealed class ProfileChartPanel
         ushort[] values = _isX ? frame.X : frame.Y;
         int barCount = values.Length;
 
-        // Shared slot count: both axes use NX so bar widths match (as in the web UI).
-        ProfileChartLayout layout = ProfileChartLayout.Compute(size.X, size.Y, barCount, ProtocolConstants.Nx);
+        // Shared slot count: both axes use the frame's NX so bar widths match
+        // (as in the web UI), regardless of the device's coil geometry.
+        ProfileChartLayout layout = ProfileChartLayout.Compute(size.X, size.Y, barCount, frame.Nx);
         int peak = layout.ResolvePeakIndex(values, _isX ? frame.XPeak : frame.YPeak);
 
         // Top reference line (HI) and baseline (LO), spanning the full plot width.

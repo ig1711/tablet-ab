@@ -139,6 +139,68 @@ public class FrameParserTests
         Assert.False(f.CarryOver);
     }
 
+    [Theory]
+    [InlineData(41, 27)]
+    [InlineData(30, 19)]
+    public void Parse_V7SelfDescribingFrame_RoundTripsGeometry(int nx, int ny)
+    {
+        byte[] frame = FrameBuilder.V7(nx, ny)
+            .Seq(0x5A)
+            .Flags(FrameFlags.Pen | FrameFlags.FollowPeak)
+            .Backend(Backend.Hardware)
+            .Estimator(Estimator.Gaomon)
+            .Frequency(4)
+            .Burst(20)
+            .Adc(3, 2)
+            .Peaks(3, 5)
+            .Positions(0x0123, 0x0456)
+            .DeviceTimeUs(0xDEADBEEF)
+            .FillX(i => (ushort)(100 + i))
+            .FillY(i => (ushort)(200 + i))
+            .Build();
+
+        Assert.Equal(36 + (nx + ny) * 2, frame.Length);
+
+        Frame? parsed = FrameParser.Parse(frame, Host);
+
+        Assert.NotNull(parsed);
+        Frame f = parsed!;
+        Assert.Equal(ProtocolVersion.V7, f.Version);
+        Assert.Equal(nx, f.X.Length);
+        Assert.Equal(ny, f.Y.Length);
+        Assert.Equal(nx, f.Nx);
+        Assert.Equal(ny, f.Ny);
+        Assert.Equal(0x5A, f.Seq);
+        Assert.Equal(Backend.Hardware, f.Backend);
+        Assert.Equal(Estimator.Gaomon, f.Estimator);
+        Assert.Equal(4, f.Frequency);
+        Assert.Equal(20, f.Burst);
+        Assert.Equal(3, f.AdcSamples);
+        Assert.Equal(2, f.AdcClock);
+        Assert.Equal(3, f.XPeak);
+        Assert.Equal(5, f.YPeak);
+        Assert.Equal(0x0123, f.XPos);
+        Assert.Equal(0x0456, f.YPos);
+        Assert.Equal(0xDEADBEEFu, f.DeviceTimeUs);
+        Assert.True(f.PenPresent);
+        Assert.True(f.FollowPeak);
+        Assert.Equal(Host, f.HostTimeMs);
+        Assert.Equal(100, f.X[0]);
+        Assert.Equal(100 + nx - 1, f.X[nx - 1]);
+        Assert.Equal(200, f.Y[0]);
+        Assert.Equal(200 + ny - 1, f.Y[ny - 1]);
+    }
+
+    [Fact]
+    public void Parse_V7TruncatedPayload_ReturnsNull()
+    {
+        byte[] frame = FrameBuilder.V7(41, 27).Build();
+        Assert.Equal(172, frame.Length);
+
+        Assert.Null(FrameParser.Parse(frame[..(frame.Length - 1)], Host));
+        Assert.Null(FrameParser.Parse(frame[..36], Host));
+    }
+
     [Fact]
     public void Parse_LegacyV5Frame_StillDecodesReadOnly()
     {

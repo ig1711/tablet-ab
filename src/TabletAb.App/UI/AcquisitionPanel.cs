@@ -18,7 +18,8 @@ public sealed class AcquisitionPanel
     /// <summary>Set when the user clicks "Push all settings".</summary>
     public bool PushAllRequested { get; private set; }
 
-    public void DrawContent(AcquisitionSettings s, Action<byte[]> send, ICommandBuilder commands, bool connected)
+    public void DrawContent(AcquisitionSettings s, Action<byte[]> send, ICommandBuilder commands, bool connected,
+        int repeatCoilMax = ProtocolConstants.Nx)
     {
         PushAllRequested = false;
 
@@ -37,7 +38,7 @@ public sealed class AcquisitionPanel
         ImGui.Separator();
 
         DrawFrequencyPacing(s, send, commands);
-        DrawDrive(s, send, commands);
+        DrawDrive(s, send, commands, repeatCoilMax);
         DrawAdc(s, send, commands);
         DrawWindow(s, send, commands);
         DrawTracking(s, send, commands);
@@ -92,7 +93,8 @@ public sealed class AcquisitionPanel
         });
     }
 
-    private static void DrawDrive(AcquisitionSettings s, Action<byte[]> send, ICommandBuilder commands)
+    private static void DrawDrive(AcquisitionSettings s, Action<byte[]> send, ICommandBuilder commands,
+        int repeatCoilMax)
     {
         if (!ImGui.CollapsingHeader("Drive and settles", ImGuiTreeNodeFlags.DefaultOpen))
             return;
@@ -114,11 +116,17 @@ public sealed class AcquisitionPanel
                 }
             });
 
-        IntSlider("Burst periods##burst", s.Burst, 6, 29, v =>
+        using (new DisabledIf(!s.HardwareTiming))
         {
-            s.Burst = v;
-            commands.SetBurst(send, v);
-        });
+            IntSlider("Burst periods##burst", s.Burst, 6, 29, v =>
+            {
+                s.Burst = v;
+                commands.SetBurst(send, v);
+            });
+        }
+
+        if (!s.HardwareTiming)
+            ImGui.TextDisabled("software sled burst is compile-time only (firmware SW_BURST_PERIODS); rebuild to change");
 
         ChoiceCombo("Ramp mitigation##ramp", ProtocolCatalog.RampModes, s.RampMode, v =>
         {
@@ -203,7 +211,7 @@ public sealed class AcquisitionPanel
             IntInput("D##setd", s.SettleD, 0, 255, v => { s.SettleD = v; SendSettle(); });
         }
 
-        IntInput("Repeat coil (0 = off)##repeat", s.RepeatCoil, 0, ProtocolConstants.Nx, v =>
+        IntInput("Repeat coil (0 = off)##repeat", s.RepeatCoil, 0, repeatCoilMax, v =>
         {
             s.RepeatCoil = v;
             commands.RepeatCoil(send, v);

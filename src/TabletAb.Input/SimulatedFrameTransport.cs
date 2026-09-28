@@ -18,6 +18,9 @@ public sealed class SimulatedFrameTransport : IFrameSource, ICommandSink
 
     private readonly object _gate = new();
     private readonly double _rateHz;
+    private readonly int _nx;
+    private readonly int _ny;
+    private readonly int _frameLength;
 
     private Thread? _thread;
     private volatile bool _running;
@@ -26,7 +29,13 @@ public sealed class SimulatedFrameTransport : IFrameSource, ICommandSink
     private long _bytes;
     private double _phase;
 
-    public SimulatedFrameTransport(double rateHz = 1000.0) => _rateHz = rateHz;
+    public SimulatedFrameTransport(double rateHz = 1000.0, int nx = ProtocolConstants.Nx, int ny = ProtocolConstants.Ny)
+    {
+        _rateHz = rateHz;
+        _nx = nx;
+        _ny = ny;
+        _frameLength = FrameGeometry.V7(nx, ny).FrameLen;
+    }
 
     public DeviceKind Kind => DeviceKind.DebugVendor;
 
@@ -133,19 +142,19 @@ public sealed class SimulatedFrameTransport : IFrameSource, ICommandSink
             WindowY = 5,
             RecenterMode = Recenter.Sticky,
             ScanOrder = ScanOrder.Ascending,
-            XPeak = ClampPeak((int)Math.Round(xCentre) + 1, ProtocolConstants.Nx),
-            YPeak = ClampPeak((int)Math.Round(yCentre) + 1, ProtocolConstants.Ny),
+            XPeak = ClampPeak((int)Math.Round(xCentre) + 1, _nx),
+            YPeak = ClampPeak((int)Math.Round(yCentre) + 1, _ny),
             DeviceTimeUs = deviceTimeUs,
             ScanUs = 900,
             XPos = (int)((xCentre + 1.0) * 256.0),
             YPos = (int)((yCentre + 1.0) * 256.0),
             HostTimeMs = MonotonicClock.NowMs(),
-            X = Bump(xCentre, ProtocolConstants.Nx),
-            Y = Bump(yCentre, ProtocolConstants.Ny),
+            X = Bump(xCentre, _nx),
+            Y = Bump(yCentre, _ny),
         };
 
         Interlocked.Increment(ref _frames);
-        Interlocked.Add(ref _bytes, ProtocolConstants.FrameLen);
+        Interlocked.Add(ref _bytes, _frameLength);
         FrameReceived?.Invoke(this, new FrameReceivedEventArgs(frame));
     }
 

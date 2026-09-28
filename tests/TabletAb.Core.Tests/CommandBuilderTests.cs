@@ -201,11 +201,12 @@ public class CommandBuilderTests
     }
 
     [Fact]
-    public void RepeatCoil_ClampsToZeroThroughNx()
+    public void RepeatCoil_ClampsToByteRange()
     {
         AssertCommand(CommandBuilder.RepeatCoil(0), ProtocolCommands.RepeatCoil, 0);
         AssertCommand(CommandBuilder.RepeatCoil(-1), ProtocolCommands.RepeatCoil, 0);
-        AssertCommand(CommandBuilder.RepeatCoil(99), ProtocolCommands.RepeatCoil, (byte)ProtocolConstants.Nx);
+        AssertCommand(CommandBuilder.RepeatCoil(99), ProtocolCommands.RepeatCoil, 99);
+        AssertCommand(CommandBuilder.RepeatCoil(300), ProtocolCommands.RepeatCoil, 255);
         AssertCommand(CommandBuilder.RepeatCoil(12), ProtocolCommands.RepeatCoil, 12);
     }
 

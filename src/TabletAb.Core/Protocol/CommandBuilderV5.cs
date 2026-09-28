@@ -209,7 +209,7 @@ public sealed class CommandBuilderV5 : ICommandBuilder
     public void RepeatCoil(Action<byte[]> send, int coil)
     {
         byte[] b = New(RepeatCoilId);
-        b[1] = (byte)Math.Clamp(coil, 0, ProtocolConstants.Nx);
+        b[1] = (byte)Math.Clamp(coil, 0, 255);
         send(b);
     }
 

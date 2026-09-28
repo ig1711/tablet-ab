@@ -1,8 +1,9 @@
 namespace TabletAb.Core.Protocol;
 
 /// <summary>
-/// One decoded acquisition frame. For protocol v6 the fields map directly to the
-/// layout in <see cref="ProtocolConstants"/> / <c>hs611-min-ab/src/protocol.h</c>.
+/// One decoded acquisition frame. For protocol v6/v7 the fields map directly to
+/// the layout in <see cref="ProtocolConstants"/> / <c>hs611-min-ab/src/protocol.h</c>.
+/// v7 additionally carries its coil geometry, exposed by <see cref="Nx"/>/<see cref="Ny"/>.
 /// Frames from the legacy firmware (v1..v5) are mapped onto the same shape so the
 /// rest of the app does not branch on version.
 /// </summary>
@@ -84,11 +85,17 @@ public sealed class Frame
     /// <summary>Host wall-clock time at which the frame was parsed (ms).</summary>
     public double HostTimeMs { get; init; }
 
-    /// <summary>X amplitudes: <see cref="ProtocolConstants.Nx"/> u16 samples.</summary>
+    /// <summary>X amplitudes; the sample count is carried by the frame geometry.</summary>
     public ushort[] X { get; init; } = [];
 
-    /// <summary>Y amplitudes: <see cref="ProtocolConstants.Ny"/> u16 samples.</summary>
+    /// <summary>Y amplitudes; the sample count is carried by the frame geometry.</summary>
     public ushort[] Y { get; init; } = [];
+
+    /// <summary>Number of x amplitude samples (v7 carries it in the header).</summary>
+    public int Nx => X.Length;
+
+    /// <summary>Number of y amplitude samples (v7 carries it in the header).</summary>
+    public int Ny => Y.Length;
 
     // ---- derived flags ----------------------------------------------------
 

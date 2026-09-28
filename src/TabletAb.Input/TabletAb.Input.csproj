@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>TabletAb.Input</RootNamespace>
+    <AssemblyName>TabletAb.Input</AssemblyName>
+    <Description>Device transports and the lazer-equivalent input pipeline for tablet-ab.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TabletAb.Core\TabletAb.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- libusb binding for the vendor-class debug firmware. Uses the system
+         libusb-1.0 on Linux; on Windows ship libusb-1.0.dll beside the exe. -->
+    <PackageReference Include="LibUsbDotNet" Version="3.0.224" />
+
+    <!-- Internal release-HID input mode: the same OTD library osu!lazer embeds.
+         Transitively pulls OpenTabletDriver.Configurations (embedded tablet JSON). -->
+    <PackageReference Include="OpenTabletDriver" Version="0.6.7" />
+  </ItemGroup>
+
+</Project>

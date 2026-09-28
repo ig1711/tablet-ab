@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TabletAb.App</RootNamespace>
+    <AssemblyName>tablet-ab</AssemblyName>
+    <Description>Standalone tablet A/B testing interface (osu!lazer-like input conditions).</Description>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TabletAb.Core\TabletAb.Core.csproj" />
+    <ProjectReference Include="..\TabletAb.Input\TabletAb.Input.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- UI font (Noto Sans Regular, OFL). Loaded at runtime so glyphs are
+         rasterised at the UI scale instead of the scaled-up default bitmap. -->
+    <None Include="Assets\NotoSans-Regular.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Assets\NotoSans-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Same GPU abstraction osu!lazer uses (Veldrid). Public stable 4.9.0 is
+         the closest equivalent to osu's ppy.Veldrid fork. -->
+    <PackageReference Include="Veldrid" Version="4.9.0" />
+    <PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
+
+    <!-- ImGui.NET UI backend. Veldrid.ImGui is prerelease-only (frozen at the
+         Veldrid 4.9.0 commit) and is binary-compatible only with ImGui.NET
+         1.89.2 — do NOT bump ImGui.NET independently. -->
+    <PackageReference Include="Veldrid.ImGui" Version="5.89.2-ga121087cad" />
+    <PackageReference Include="ImGui.NET" Version="1.89.2" />
+
+    <!-- Pinned only so Program.cs can reference typeof(Vulkan.VulkanNative) to
+         install the libdl DllImportResolver on modern Linux (see Program.cs). -->
+    <PackageReference Include="Vk" Version="1.0.25" />
+  </ItemGroup>
+
+  <!-- Windows: LibUsbDotNet does not bundle the native libusb. Drop the official
+       libusb-1.0.dll into third_party/ and it is copied beside the exe. Linux
+       uses the system libusb-1.0.so.0 and needs nothing here. -->
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)../../third_party/libusb-1.0.dll')">
+    <None Include="../../third_party/libusb-1.0.dll"
+          Link="libusb-1.0.dll"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

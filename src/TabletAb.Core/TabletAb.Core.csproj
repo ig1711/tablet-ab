@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>TabletAb.Core</RootNamespace>
+    <AssemblyName>TabletAb.Core</AssemblyName>
+    <Description>Protocol, device profiles and shared types for tablet-ab.</Description>
+  </PropertyGroup>
+
+</Project>

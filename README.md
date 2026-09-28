@@ -1,18 +1,9 @@
 # tablet-ab
 
-A standalone desktop application for A/B-testing custom drawing-tablet firmware
-under **osu!lazer-like conditions**. It replaces the old WebUSB browser tool
-(browser scheduling jitter cannot poll a 1000 Hz report stream faithfully) and
-is meant to be reusable by any custom-firmware developer, not only the HS611
-work.
+A standalone desktop application for A/B-testing custom drawing-tablet firmware.
 
-It renders with **Veldrid** (the same GPU abstraction osu!lazer uses; Vulkan /
-OpenGL / OpenGLES / D3D11) and drives its control panels with **ImGui.NET**.
-No osu.Framework dependency — input fidelity comes from a dedicated reader
-thread, not the UI framework.
-
-See [`PLAN.md`](PLAN.md) for design, [`PHASES.md`](PHASES.md) for progress and
-[`SESSION_LOG.md`](SESSION_LOG.md) for the development log.
+It renders with **Veldrid** (Vulkan /OpenGL / OpenGLES / D3D11) and drives its control
+panels with **ImGui.NET**. Input fidelity comes from a dedicated reader thread, not the UI framework.
 
 The reference firmware it drives is
 [hs611-min-ab](https://github.com/ig1711/hs611-min-ab); the shared wire protocol
